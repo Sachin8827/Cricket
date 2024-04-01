@@ -19,5 +19,21 @@ const teamSchema = new mongoose.Schema({
                 ref : 'Player'
             }
         }
-    ]
+    ],
+    personalPlayers : {
+        type : Number,
+        default : 0
+    },
+    isRegisterd :{
+        type : Boolean,
+        default : false
+    },
+    tournament : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Tournament"
+    },
+
 });
+
+const Team = mongoose.model('Team', teamSchema);
+export default Team;
