@@ -35,7 +35,7 @@ const playerSchema = new mongoose.Schema({
         trim :  true
     },
     playingStyle : {
-        type : mongoose.Schema.Types,ObjectId,
+        type : mongoose.Schema.Types.ObjectId,
         ref : 'PlayingStyle'
     },
     team : {
