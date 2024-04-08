@@ -1,3 +1,4 @@
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
@@ -18,8 +19,13 @@ mongoose.connect("mongodb://localhost:27017/cricket")
     app.use("/player",PlayerRouter);
     app.use('/team',TeamRouter)
     app.use("/admin",adminRouter);
+    app.use('/api/players', playerRoutes);
+    app.use('/api/playing-styles', playingStyleRoutes);
+    app.use('/api', tournamentRoutes);
+    app.use('/api', teamRoutes);
     app.listen(3000,()=>{console.log("server started......");})
     
 }).catch(err=>{
     console.log(err);
 })
+

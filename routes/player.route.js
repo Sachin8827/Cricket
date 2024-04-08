@@ -1,5 +1,6 @@
+
 import  express from "express";
-import { retrievePassword, acceptRequest, rejectRequest, getAllPlayer, signUp,signIn,updateProfile } from "../controller/player.controller.js";
+import { retrievePassword, acceptRequest, rejectRequest, getAllPlayer, signUp,signIn,updateProfile,updatePlayerProfile } from "../controller/player.controller.js";
 import {body} from "express-validator";
 import multer from "multer";
 const upload=multer({dest:"public/images"});
@@ -16,7 +17,7 @@ body("age","player age required").notEmpty(),
 body("height","player height required ").notEmpty(),
 body("type","player type is required").notEmpty(),signUp);
 router.post("/update-profile",upload.single("image"),updateProfile);
-
+router.put('/:playerId', updatePlayerProfile);
 router.post("/signIn",signIn);
 
 
@@ -26,3 +27,4 @@ router.post('/reject', rejectRequest);
 router.get('/getallplayer', getAllPlayer);
 router.get('/getplayerinfo/:id',)
 export default router;
+
