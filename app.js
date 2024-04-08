@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import PlayerRouter from "./routes/player.route.js";
+import adminRouter from "./routes/admin.route.js";
 import path from "path";
 import TeamRouter from './routes/team.route.js'
 
@@ -16,6 +17,7 @@ mongoose.connect("mongodb://localhost:27017/cricket")
     app.use(bodyParser.urlencoded({extended : true}));
     app.use("/player",PlayerRouter);
     app.use('/team',TeamRouter)
+    app.use("/admin",adminRouter);
     app.listen(3000,()=>{console.log("server started......");})
     
 }).catch(err=>{
