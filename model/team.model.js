@@ -2,15 +2,13 @@ import mongoose from 'mongoose';
 
 const teamSchema = new mongoose.Schema({
     name : {
-        type : String,
-        trim : true
+        type : String
     },
     ownerName : {
-        type : String,
-        trim : true
+        type : String
     },
     captain : {
-        
+        type : String
     },
     players : [
         {
@@ -35,5 +33,5 @@ const teamSchema = new mongoose.Schema({
 
 });
 
-const Team = mongoose.model('Team', teamSchema);
+const Team = mongoose.model('team', teamSchema);
 export default Team;
