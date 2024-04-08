@@ -18,7 +18,8 @@ mongoose.connect("mongodb://localhost:27017/cricket")
     app.use(bodyParser.urlencoded({extended : true}));
     app.use("/player",PlayerRouter);
     app.use('/team',TeamRouter)
-    app.use("/admin",adminRouter);
+    app.use("/admin",AdminRouter);
+    app.use('/api', TeamRouter);
     app.listen(3000,()=>{console.log("server started......");})
     
 }).catch(err=>{
