@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTeam, viewTeam,teamList, sendRequest, trailRequest, getUserRequest } from '../controller/Team.controller.js';
+import { createTeam, viewTeam,teamList, sendRequest, trailRequest, getUserRequest } from '../controller/team.controller.js';
 
 const router  = express.Router();
 
