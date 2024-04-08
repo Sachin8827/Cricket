@@ -98,3 +98,23 @@ export const getUserRequest = async(request, response, next) =>{
     
 
 }
+export const removePlayer = async (request, response, next) =>{
+    let {teamId, playerId} = request.body;
+    try {
+        let team = await Team.findOne({_id : teamId});
+        if(!team)
+            return response.status(201).json({result : "Team not found"});
+        if(!team.isRegisterd){
+                await team.updateOne({_id : teamId},{
+                    $pull : {
+                        players : {playerId}
+                    }
+                });
+                return response.status(201).json({result : 'Player removed'})
+        }
+
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({error : "Internal server error"});
+    }
+}
