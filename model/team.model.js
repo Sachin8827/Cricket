@@ -5,12 +5,14 @@ const teamSchema = new mongoose.Schema({
         type : String,
         trim : true
     },
-    ownerName : {
+    banner : {
         type : String,
-        trim : true
+        trim  : true
     },
+    
     captain : {
-        
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'Player'
     },
     players : [
         {
@@ -28,10 +30,26 @@ const teamSchema = new mongoose.Schema({
         type : Boolean,
         default : false
     },
+    playedTournament :[
+        {
+            tournamentId : {
+                type : mongoose.Schema.Types.ObjectId,
+                ref : 'Tournament'
+            }
+        }
+    ],
     tournament : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "Tournament"
     },
+    reqestedPlayers : [
+        {
+            playerId :{
+                type : mongoose.Schema.Types.ObjectId,
+                ref : "Player"
+            }
+        }
+    ]
 
 });
 

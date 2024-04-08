@@ -76,10 +76,10 @@ export const acceptRequest = (request, response, next) =>{
 export const rejectRequest = (request, response, next) => {
     let {playerId, teamId} = request.body;
     Player.updateOne({ _id: playerId }, {
-            $pullAll: {
-                requestedTeam: [
-                    { _id: teamId }
-                ]
+            $pull: {
+                requestedTeam: 
+                    { teamId }
+                
             }
         })
         .then(result => {
@@ -155,7 +155,7 @@ export const signUp= async (request,response,next)=>{
         
     const error =validationResult(request);
     if(!error.isEmpty())
-    return response.status(401).json({error:"Invalid request",errorMessage:error.array()});
+        return response.status(401).json({error:"Invalid request",errorMessage:error.array()});
     let password=request.body.password;
     let saltkey= bcrypt.genSaltSync(10);
     let enc= bcrypt.hashSync(password,saltkey);
@@ -165,7 +165,7 @@ export const signUp= async (request,response,next)=>{
     delete result.password;
     let email=request.body.email;
     sendEmail(email);
-    return response.status(200).json({message:"signup success",player:result});
+        return response.status(200).json({message:"signup success",player:result});
     } 
     catch (err) {
     console.log(err);
