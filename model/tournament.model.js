@@ -1,57 +1,52 @@
-import mongoose from 'mongoose';
+
+import mongoose from "mongoose";
 
 const tournamentSchema = new mongoose.Schema({
-  organizerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  address: {
-    type: String,
-    required: true
-  },
-  teamLimit: {
-    type: Number,
-    required: true
-  },
-  deadline: {
-    type: Date,
-    required: true
-  },
-  startDate: {
-    type: Date,
-    required: true
-  },
-  endDate: {
-    type: Date,
-    required: true
-  },
-  fees: {
-    type: Number,
-    required: true
-  },
-  firstPrice: {
-    type: Number,
-    required: true
-  },
-  secondPrice: {
-    type: Number,
-    required: true
-  },
-  thirdPrice: {
-    type: Number,
-    required: true
-  },
-  format: {
-    type: String,
-    required: true
-  }
-});
-
-const Tournament = mongoose.model('Tournament', tournamentSchema);
-
+    organiserId : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'Organiser'
+    },
+    name : {
+        type : String,
+        trim :true
+    },
+    address :{
+        type : String,
+        trim : true
+    },
+    teamLimit : {
+        type : Number
+    },
+    deadLine :{
+        type : Date
+    },
+    startDate : {
+        type : Date
+    },
+    endDate :{
+        type : Date
+    },
+    tournamentTeams :[
+        {
+            teamId : mongoose.Schema.Types.ObjectId,
+            ref : 'Team'
+        }
+    ],
+    firstPrize : {
+        type : Number
+    },
+    secondPrize :{
+        type : Number
+    },
+    thirdPrize : {
+        type : Number
+    },
+    entryFees :{
+        type : Number
+    },
+    format : {
+        type : Number
+    }
+}) ;
+const Tournament  = mongoose.model('Tournament', tournamentSchema);
 export default Tournament;

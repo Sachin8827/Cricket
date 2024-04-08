@@ -28,7 +28,8 @@ const playerSchema = new mongoose.Schema({
         default : false
     },
     image : {
-        type : String
+        type : String,
+        trim:true
     },
     playerType :{
         type : String,
@@ -69,7 +70,7 @@ const playerSchema = new mongoose.Schema({
         }
     ]
     
-});
+}, { toJSON: { getters: true } },{versionKey: false});
 
 const Player = mongoose.model('Player', playerSchema);
 export default Player;

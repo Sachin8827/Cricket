@@ -1,26 +1,4 @@
-// import mongoose from 'mongoose';
 
-// const teamSchema = new mongoose.Schema({
-//     name : {
-//         type : String,
-//         trim : true
-//     },
-//     ownerName : {
-//         type : String,
-//         trim : true
-//     },
-//     captain : {
-        
-//     },
-//     players : [
-//         {
-//             playerId: {
-//                 type : mongoose.Schema.Types.ObjectId,
-//                 ref : 'Player'
-//             }
-//         }
-//     ]
-// });
 
 
 import mongoose from 'mongoose';
@@ -30,35 +8,53 @@ const teamSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    captain: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+
+    banner : {
+        type : String,
+        trim  : true
     },
-    banner: {
-        type: String
+    
+    captain : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'Player'
     },
     players : [
-                {
-                    playerId: {
-                        type : mongoose.Schema.Types.ObjectId,
-                        ref : 'Player'
-                    }
-                }
-            ],
-    tournamentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tournament',
-        required: true
+        {
+            playerId: {
+                type : mongoose.Schema.Types.ObjectId,
+                ref : 'Player'
+            }
+        }
+    ],
+    personalPlayers : {
+        type : Number,
+        default : 0
     },
-    isRegistered: {
-        type: Boolean,
-        default: false
+    isRegisterd :{
+        type : Boolean,
+        default : false
     },
-    isApproved: {
-        type: Boolean,
-        default: false
-    }
+    playedTournament :[
+        {
+            tournamentId : {
+                type : mongoose.Schema.Types.ObjectId,
+                ref : 'Tournament'
+            }
+        }
+    ],
+    tournament : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Tournament"
+    },
+    reqestedPlayers : [
+        {
+            playerId :{
+                type : mongoose.Schema.Types.ObjectId,
+                ref : "Player"
+            }
+        }
+    ]
+
 });
 
 const Team = mongoose.model('Team', teamSchema);
