@@ -3,7 +3,7 @@ import Player from "../model/player.model.js";
 import Team from "../model/team.model.js";
 import Transporter from '../mail/mail.js'
 
-export const CreateTeam = async (request, response, next) =>{
+export const createTeam = async (request, response, next) =>{
     
     try {
         let {name, captain, personalPlayer} = request.body;
