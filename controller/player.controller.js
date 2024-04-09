@@ -1,78 +1,86 @@
 
+
 import transporter from '../mail/mail.js';
 import Team from '../model/team.model.js'
 import Player from '../model/player.model.js';
 import {validationResult} from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OTP, storeOTP } from '../model/otp.model.js';
 
-export const retrievePassword = (request, response, next) =>{
+
+export const retrievePassword =  async (request, response, next) =>{
     let email  = request.body.email;
-    Player.findOne({email})
-    .then(result =>{
-        otp = generateOTP();
+    try{
+        let player = await Player.findOne({email});
+        if(!player)
+            return response.status(201).json({result : "Player not found"});
+
+        let otp = generateOTP();
         let obj = {
             from: 'sb360879@gmail.com',
             to: email,
             subject: 'Sending Email using Node.js',
             text: 'your otp is '+otp
         };
+        await storeOTP(email, otp)
         transporter.sendMail(obj, (error, info) =>{
             return error ? response.status(500).json({error : "Internal server error"}) : response.status(200).json({result: 'email sent'})
         })
-    })
-    .catch(error =>{
+    }
+    catch(error){
         console.log(error);
         response.status(500).json({error : 'Internal server error'});
-    })
+    }
 }
-export const verfiyOTP = (request, response, next) =>{
+export const resetPassword = async (request, response, next) =>{
+    try {
+        const { email, otp, newPassword } = request.body;
 
+        const storedOTP = await OTP.findOne({ email });
+            console.log(storeOTP.otp);
+        if (!storedOTP || storedOTP.otp !== otp) {
+            return response.status(401).json({ error: 'Invalid OTP' });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await Player.updateOne({ email }, { password: hashedPassword });
+        
+        return response.status(200).json({ message: 'Password reset successfully' });
+    } catch (error) {
+        return response.status(500).json({ error: 'Internal Server Error' });
+    }
 }
-export const acceptRequest = (request, response, next) =>{
-    let {playerId, teamId} = request.body;
-    
-    Player.updateOne({ _id: playerId }, {
+export const acceptRequest = async (request, response, next) => {
+    try {
+        let { playerId, teamId } = request.body;
+
+        const team = await Team.findOne({ _id: teamId });
+        if (!team)
+            return response.status(404).json({ message: "Team Not Found" });
+        if((team.players.length + team.personalPlayers)==11)
+            return response.status(404).json({result : "Team already full"})
+        
+        const playerUpdate = await Player.updateOne({ _id: playerId }, {
             $set: {
-
                 joinStatus: true,
+                team: teamId
             }
-        })
-        .then(async result => {
-            console.log(result);
+        });
+        console.log(playerUpdate);
 
-            const team = await Team.findOne({
-                _id: teamId
-            });
-            if (!team)
-                return response.status(404).json({ message: "Team Not Found" });
-            team.players.push(playerId)
-            team.save()
-                .then(result => {
-                    console.log(result);
-                    Player.updateOne({ _id: playerId },{
-                        $set  : {
-                            team : teamId
-                        }
-                    })
-                        .then(result => {
-                            return response.status(201).json({ message: "success" });
-                        })
-                        .catch(err => {
-                            return response.status(500).json({ message: "Internal Server Error" });
-                        });
-                })
-                .catch(err => {
-                    console.log(err);
-                    return response.status(500).json({ message: "Internal Server Error" });
-                });
+        team.players.push(playerId);
+        const teamSave = await team.save();
+        console.log(teamSave);
 
-        })
-        .catch(err => {
-                console.log(err);
-                return response.status(500).json({ message: "Internal Server Error" })
-            })
-}
+        return response.status(201).json({ message: "success" });
+    } catch (err) {
+        console.log(err);
+        return response.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 export const rejectRequest = (request, response, next) => {
     let {playerId, teamId} = request.body;
     Player.updateOne({ _id: playerId }, {
@@ -95,7 +103,6 @@ export const rejectRequest = (request, response, next) => {
             }
 
         )
-
 };
 
 function generateOTP() {
@@ -145,9 +152,6 @@ const generateToken=(email)=>{
     let payload={subject:email};
     return jwt.sign(payload,"hmaraapnaprojectcrickettournament");
 }
-
-
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 export const signUp= async (request,response,next)=>{
@@ -209,3 +213,23 @@ Player.updateOne({_id:playerid},{
         return response.status(500).json({message: "Internal Server Error"});
     }); 
 }
+
+export const updatePlayerProfile = async (req, res) => {
+  try {
+    const playerId = req.params.playerId;
+    const updatedFields = req.body;
+
+    
+    const player = await Player.findByIdAndUpdate(playerId, updatedFields, { new: true });
+
+    if (!player) {
+      return res.status(404).json({ message: 'Player not found' });
+    }
+
+    res.json({ message: 'Player profile updated successfully', player });
+  } catch (error) {
+    console.error('Error updating player profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+

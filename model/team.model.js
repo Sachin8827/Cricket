@@ -1,26 +1,22 @@
+
+
+
 import mongoose from 'mongoose';
 
 const teamSchema = new mongoose.Schema({
-    name : {
-        type : String
+    name: {
+        type: String,
+        required: true
     },
-<<<<<<< HEAD
-    ownerName : {
-        type : String
-=======
+
     banner : {
         type : String,
         trim  : true
->>>>>>> c612c0aeef76c4f6e62ee49ceefaa3b66d0d1ad1
     },
     
     captain : {
-<<<<<<< HEAD
-        type : String
-=======
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Player'
->>>>>>> c612c0aeef76c4f6e62ee49ceefaa3b66d0d1ad1
     },
     players : [
         {
@@ -61,5 +57,6 @@ const teamSchema = new mongoose.Schema({
 
 });
 
-const Team = mongoose.model('team', teamSchema);
+const Team = mongoose.model('Team', teamSchema);
+
 export default Team;
