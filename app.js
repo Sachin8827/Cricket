@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import PlayerRouter from "./routes/player.route.js";
 import AdminRouter from "./routes/admin.route.js";
 import path from "path";
+import organiserRouter from "./routes/organiser.route.js";
 import TeamRouter from './routes/team.route.js'
 
 import {fileURLToPath} from "url";
@@ -19,6 +20,7 @@ mongoose.connect("mongodb://localhost:27017/cricket")
     app.use("/player",PlayerRouter);
     app.use('/team',TeamRouter)
     app.use("/admin",AdminRouter);
+    app.use("/organiser",organiserRouter);
     app.use('/api', TeamRouter);
     app.listen(3000,()=>{console.log("server started......");})
     
