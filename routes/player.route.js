@@ -1,6 +1,6 @@
 
 import  express from "express";
-import { retrievePassword, acceptRequest, rejectRequest, getAllPlayer, signUp,signIn,updateProfile,updatePlayerProfile } from "../controller/player.controller.js";
+import {resetPassword, retrievePassword, acceptRequest, rejectRequest, getAllPlayer, signUp,signIn,updateProfile,updatePlayerProfile } from "../controller/player.controller.js";
 import {body} from "express-validator";
 import multer from "multer";
 const upload=multer({dest:"public/images"});
@@ -26,5 +26,7 @@ router.post('/accept', acceptRequest);
 router.post('/reject', rejectRequest);
 router.get('/getallplayer', getAllPlayer);
 router.get('/getplayerinfo/:id',)
+router.post("/forgotPassword",retrievePassword);
+router.post("/resetPassword",resetPassword);
 export default router;
 
