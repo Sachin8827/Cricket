@@ -1,15 +1,32 @@
+console.log("sachin")
 import Team from '../model/team.model.js';
 import Player from "../model/player.model.js";
 import Transporter from '../mail/mail.js'
+import Tournament from '../model/tournament.model.js';
 
-export const applyForTournament = async (req, res, next) => {
+export const applyForTournament = async (request, response, next) => {
+    let {tournamentId, teamId} = request.body;
     try {
-        const teamData = req.body;
-        const team = await Team.create(teamData);
-        res.status(201).json({ message: "Team application submitted successfully", team });
+        let tournament = await Tournament.findOne({_id : tournamentId});
+        let team = await Team.findOne({_id : teamId});
+        console.log(tournament)
+        console.log(team)
+        let status = tournament.tournamentTeams.some((team) => team.teamId == teamId);
+
+        if(status)
+            return response.status(201).json({result : "Already joined tournament"});
+
+        tournament.tournamentTeams.push({teamId});
+        let join = await tournament.save();
+        team = await Team.updateOne({_id : teamId},{
+            isRegisterd : true,
+            tournament : tournamentId
+        });
+        console.log(team);
+
+        response.status(200).json({result : 'tournament joins success', status : join})
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Internal Server Error" });
+        console.log(error);
     }
 };
 

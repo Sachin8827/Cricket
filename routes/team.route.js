@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTeam, viewTeam,teamList, sendRequest, trailRequest, getUserRequest } from '../controller/team.controller.js';
+import { createTeam, viewTeam,teamList, sendRequest, trailRequest, getUserRequest, applyForTournament } from '../controller/team.controller.js';
 
 const router  = express.Router();
 
@@ -9,5 +9,6 @@ router.get('/teamlist', teamList);
 router.post('/sendrequest', sendRequest);
 router.post('/trailrequest', trailRequest);
 router.get('/getuser', getUserRequest);
+router.post('/apply', applyForTournament)
 
 export default router;

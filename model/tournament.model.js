@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const tournamentSchema = new mongoose.Schema({
@@ -26,10 +25,13 @@ const tournamentSchema = new mongoose.Schema({
     endDate :{
         type : Date
     },
+    
     tournamentTeams :[
         {
-            teamId : mongoose.Schema.Types.ObjectId,
-            ref : 'Team'
+            teamId :{
+                type :  mongoose.Schema.Types.ObjectId,
+                ref : 'Team'
+            }
         }
     ],
     firstPrize : {
@@ -48,5 +50,6 @@ const tournamentSchema = new mongoose.Schema({
         type : Number
     }
 }) ;
+
 const Tournament  = mongoose.model('Tournament', tournamentSchema);
 export default Tournament;

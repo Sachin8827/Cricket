@@ -10,7 +10,7 @@ const organiserSchema = new mongoose.Schema({
         trim : true
     },
     mobile : {
-        type : String,
+        type : String
     },
     tournaments : [
         {

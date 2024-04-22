@@ -11,6 +11,7 @@ export const createTournament = async (request, response, next) => {
         console.log('call');
         return response.status(201).json({ message: "Tournament created successfully", tournament });
     } catch (error) {
+        console.log(error)
         return response.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -29,7 +30,7 @@ export const viewTournaments = async (request, response, next) => {
 
 export const viewAllTournaments = async (req, res, next) => {
     try {
-        const tournaments = await Tournament.find();
+        const tournaments = await Tournament.find().populate('organiserId');
         res.status(200).json({ tournaments });
     } catch (error) {
         console.error(error);

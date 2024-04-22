@@ -19,7 +19,7 @@ const playingStyle = new mongoose.Schema({
     }
 });
 
-const PlayingStyle = mongoose.model('PlayingStyles', playingStyle);
+const PlayingStyle = mongoose.model('PlayingStyle', playingStyle);
 
 export default PlayingStyle;
 

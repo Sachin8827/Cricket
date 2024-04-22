@@ -1,14 +1,10 @@
-
-
-
 import mongoose from 'mongoose';
 
 const teamSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
+    name : {
+        type : String,
+        trim : true
     },
-
     banner : {
         type : String,
         trim  : true
@@ -58,5 +54,4 @@ const teamSchema = new mongoose.Schema({
 });
 
 const Team = mongoose.model('Team', teamSchema);
-
 export default Team;
