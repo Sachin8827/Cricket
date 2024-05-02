@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import { OTP, storeOTP } from '../model/otp.model.js';
 
 
+
 export const retrievePassword =  async (request, response, next) =>{
     let email  = request.body.email;
     try{
@@ -109,25 +110,33 @@ function generateOTP() {
     
     return Math.floor(100000 + Math.random() * 900000);
 }
-export const getAllPlayer = async (request, response, next) =>{
+export const getAllPlayer = async (request, response, next) => {
     try {
-        let players = await Player.find();
-        return response.status(200).json({result : players});
+        let players = await Player.find().populate('playingStyle');
+       
 
+        // Remove password property from each player object
+        players.forEach(player => {
+            delete player.password;
+        });
+
+        return response.status(200).json({ result: players });
     } catch (error) {
-        return response.status(500).json({error : "Internal server error"});
+        return response.status(500).json({ error: "Internal server error" });
     }
-
 }
 
 export const getPlayerInfo = async (request, response, next) =>{
     try{
         let id  = request.params.id;
-        let player = await Player.findOne({_id : id}).populate('stats').populate('playingStyle');
+        console.log(id)
+        let player = await Player.findOne({_id : id}).populate('stats').populate('playingStyle').populate('requestedTeam.teamId');
+        console.log(player)
         return response.status(200).json({result : player});
     }
     catch(error){
-        return response.status(500).json({error : "Internal server error"});
+        console.log(error)
+        return response.status(500).json({error : error});
     }
 
 
@@ -138,7 +147,8 @@ export const getPlayerInfo = async (request, response, next) =>{
 export const signIn= async(request,response,next)=>{
 try{
     let{email,password}=request.body;
-    let player=await Player.findOne({email});
+    let player=await Player.findOne({email}).populate('team');
+    console.log(player)
     return player ?
     bcrypt.compareSync(password,player.password)?response.status(200).json({message: "signin success",player :{...player.toObject(),password:undefined},token : generateToken(email)}):response.status(401).json({error:"Invalide request",message:"Invalide password"})
     :response.status(500).json({error:"Internal server error"});
@@ -154,29 +164,35 @@ const generateToken=(email)=>{
 }
 
 
-export const signUp= async (request,response,next)=>{
+export const signUp = async (request, response, next) => {
     try {
+        const error = validationResult(request);
+        console.log(request.body)
         
-    const error =validationResult(request);
-    if(!error.isEmpty())
-        return response.status(401).json({error:"Invalid request",errorMessage:error.array()});
-    let password=request.body.password;
-    let saltkey= bcrypt.genSaltSync(10);
-    let enc= bcrypt.hashSync(password,saltkey);
-    request.body.password=enc;
-    let result = await Player.create(request.body);
-    result=result.toObject();
-    delete result.password;
-    let email=request.body.email;
-    sendEmail(email);
-        return response.status(200).json({message:"signup success",player:result});
-    } 
+        if (!error.isEmpty())
+            return response.status(401).json({ error: "Invalid request", errorMessage: error.array() });
+        let password = request.body.password;
+        let saltkey = bcrypt.genSaltSync(10);
+        console.log(saltkey)
+        
+        let enc = bcrypt.hashSync(password, saltkey);
+        let fileName = "";
+        fileName = request.file.filename;
+        console.log("Filename  " + request.file.fileName);
+        request.body.image = fileName;
+        request.body.password = enc;
+        let result = await Player.create(request.body);
+        result = result.toObject();
+        delete result.password;
+        let email = request.body.email;
+        sendEmail(email);
+        return response.status(200).json({ message: "signup success", player: result });
+    }
     catch (err) {
-    console.log(err);
-    return response.status(500).json({error:"Internal server error"});
+        console.log(err);
+        return response.status(500).json({ error: "Internal server error" });
     }
 }
-
 function sendEmail(email) {
     const mailOptions = {
         from: 'sb360879@gmail.com',
@@ -233,3 +249,16 @@ export const updatePlayerProfile = async (req, res) => {
   }
 };
 
+export const retriveByStyle = async (request, response, next) =>{
+    let style = request.params.style;
+    console.log(style);
+    try {
+        let players = await Player.find({playerType : style, joinStatus : false}).populate('playingStyle');
+        console.log(players)
+        return  response.status(200).json({result : players})
+    } catch (error) {
+        console.log(error)
+       return  response.status(500).json({result : "Internal server error"})
+    }
+
+  }
