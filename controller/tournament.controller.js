@@ -94,3 +94,14 @@ export const getTournamentsById = async (request, response, next) => {
         return response.status(500).json({ error: "Internal Server Error" });
     }
 };
+
+export const getTournaments = async (request, response, next) => {
+    try {
+        const tournaments = await Tournament.find().populate('tournamentTeams.teamId');
+        console.log(tournaments)
+        return response.status(200).json({ tournaments });
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internal Server Error" });
+    }
+};

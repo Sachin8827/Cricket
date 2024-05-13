@@ -7,17 +7,20 @@ import {validationResult} from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OTP, storeOTP } from '../model/otp.model.js';
+import { response } from 'express';
 
 
 
 export const retrievePassword =  async (request, response, next) =>{
     let email  = request.body.email;
+    console.log(email)
     try{
         let player = await Player.findOne({email});
         if(!player)
             return response.status(201).json({result : "Player not found"});
 
         let otp = generateOTP();
+        console.log(otp)
         let obj = {
             from: 'sb360879@gmail.com',
             to: email,
@@ -58,22 +61,28 @@ export const acceptRequest = async (request, response, next) => {
         let { playerId, teamId } = request.body;
 
         const team = await Team.findOne({ _id: teamId });
+        const player = await Player.findOne({_id : playerId});
+        console.log(player)
+        if(player.joinStatus)
+            return response.status(201).json({message : 'You have already joined another team'})
         if (!team)
-            return response.status(404).json({ message: "Team Not Found" });
+            return response.status(201).json({ message: "Team Not Found" });
         if((team.players.length + team.personalPlayers)==11)
-            return response.status(404).json({result : "Team already full"})
+            return response.status(201).json({message : "Team already full"})
         
         const playerUpdate = await Player.updateOne({ _id: playerId }, {
             $set: {
                 joinStatus: true,
                 team: teamId
+            },
+            $pull: {
+                requestedTeam: 
+                    { teamId }    
             }
         });
-        console.log(playerUpdate);
 
-        team.players.push(playerId);
+        team.players.push({playerId : playerId});
         const teamSave = await team.save();
-        console.log(teamSave);
 
         return response.status(201).json({ message: "success" });
     } catch (err) {
@@ -131,6 +140,21 @@ export const getPlayerInfo = async (request, response, next) =>{
         let id  = request.params.id;
         console.log(id)
         let player = await Player.findOne({_id : id}).populate('stats').populate('playingStyle').populate('requestedTeam.teamId');
+        console.log(player)
+        return response.status(200).json({result : player});
+    }
+    catch(error){
+        console.log(error)
+        return response.status(500).json({error : error});
+    }
+
+
+}
+export const requestedTeams = async (request, response, next) =>{
+    try{
+        let id  = request.params.id;
+        console.log(id)
+        let player = await Player.findOne({_id : id}).populate('requestedTeam.teamId');
         console.log(player)
         return response.status(200).json({result : player});
     }
@@ -213,7 +237,7 @@ function sendEmail(email) {
 
 export const updateProfile=(request,response,next)=>{
 let playerid=request.body._id;
-console.log(playerid);
+
 let fileName="";
 if(request.file)
     fileName=request.file.filename;
@@ -251,7 +275,6 @@ export const updatePlayerProfile = async (req, res) => {
 
 export const retriveByStyle = async (request, response, next) =>{
     let style = request.params.style;
-    console.log(style);
     try {
         let players = await Player.find({playerType : style, joinStatus : false}).populate('playingStyle');
         console.log(players)
@@ -261,4 +284,27 @@ export const retriveByStyle = async (request, response, next) =>{
        return  response.status(500).json({result : "Internal server error"})
     }
 
+  }
+
+  export const SentRequest = async (request, response, next) =>{
+    try {
+        const {teamId, playerId} = request.body;
+        console.log(teamId, playerId);
+        let team = await Team.findOne({_id : teamId});
+        if(!team)
+            return response.status(400).json({result : 'Team not Found'});
+        let  teamStatus= team.reqestedPlayers.some((player) =>player.playerId == playerId);
+        console.log(teamStatus)
+        if(!teamStatus){
+                team.reqestedPlayers.push({playerId});
+                team  = await team.save();
+        if(team.modifiedCount >0)
+            console.log('Scuess')
+            return response.status(200).json({result : "request send to Player"})
+        }
+        return response.status(201).json({result : "Request already sent"})
+    } catch (error) {
+            console.log(error)
+            return response.status(500).json({result : "Internal server error"})
+    }
   }

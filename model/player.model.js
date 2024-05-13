@@ -65,7 +65,7 @@ const playerSchema = new mongoose.Schema({
         {
             teamId :{
                 type : mongoose.Schema.Types.ObjectId,
-                ref : 'Team'
+                ref : 'Team',
             }
         }
     ]

@@ -11,7 +11,8 @@ import TournamentRouter from './routes/tournament.routes.js';
 import {fileURLToPath} from "url";
 import PlayingStyleRouter from './routes/playingstyling.route.js'
 import MatchRouter from './routes/match.route.js'
-import cors from 'cors'
+import cors from 'cors';
+import PointRouter from './routes/point.routes.js'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname =path.dirname(__filename);
 const app = express();
@@ -27,7 +28,8 @@ mongoose.connect("mongodb+srv://Sachin:MPIF123@cluster0.rwyjpoi.mongodb.net/cric
     app.use('/tournament', TournamentRouter)
     app.use("/organiser",organiserRouter);
     app.use('/playingstyle', PlayingStyleRouter)
-   app.use('/match', MatchRouter);
+    app.use('/match', MatchRouter);
+    app.use('/point', PointRouter)
     app.listen(3000,()=>{console.log("server started......");})
     
 }).catch(err=>{

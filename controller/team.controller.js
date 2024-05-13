@@ -45,11 +45,7 @@ export const createTeam = async (request, response, next) => {
             console.log(name,captain,personalPlayers,banner,logo)
             request.body.logo=logo;
             request.body.banner=banner;
-        let team = await Team.create(request.body).then((res)=>{
-            console.log(res)
-        }).catch((error)=>{
-            console.log(error);
-        });
+        let team = await Team.create(request.body);
         if (team) {
             let result = await Player.updateOne({ _id: player._id }, {
                 $set: {
@@ -57,9 +53,10 @@ export const createTeam = async (request, response, next) => {
                     team: team._id
                 }
             });
-            return response.status(200).json({ result: result });
+            console.log(result)
+            return response.status(200).json({ result: "Team created" });
         }
-        return response.status(200).json({ result: "team not created" });
+        return response.status(201).json({result : "team not created"});
 
     } catch (error) {
         console.log(error)
@@ -71,7 +68,17 @@ export  const viewTeam  = async (request, response, next) =>{
     try {
         let id = request.params.id;
         console.log('executed')
-        let team = await Team.findOne({_id : id}).populate('captain');
+        let team = await Team.findOne({_id : id}).populate({
+            path : 'captain',
+            populate : {
+                path : 'playingStyle'
+            }
+        }).populate({
+            path : 'players.playerId',
+            populate : {
+                path : 'playingStyle'
+            }
+        });
         return response.status(200).json({team : team});
     } catch (error) {
         console.log(error)
@@ -92,6 +99,7 @@ export const teamList = async (request, response, next) =>{
 
 export const sendRequest = async (request, response, next) =>{
     let {playerId, teamId} = request.body;
+    console.log('asdfasdfasdf')
     try {
         let player = await Player.findOne({_id : playerId});
         if(player.joinStatus)
