@@ -30,11 +30,12 @@ export const viewTournaments = async (request, response, next) => {
 
 export const viewAllTournaments = async (req, res, next) => {
     try {
+       
         const tournaments = await Tournament.find().populate('organiserId');
-        res.status(200).json({ tournaments });
+        return res.status(200).json({ tournaments });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
@@ -56,12 +57,51 @@ export const updateTournament = async (req, res, next) => {
     }
 };
 
+export const updateSchedule= async (request,response,next)=>{
+    let tournamentId =request.params.tid;
+    
+    let fileName="";
+    
+    if(request.file)
+        fileName=request.file.filename;
+        console.log(fileName)
+        let tournament = await Tournament.findOne({_id : tournamentId});
+        console.log(tournament)
+        let currentDate = new Date();
+    if (tournament.deadLine < currentDate) {
+        console.log("Tournament deadline has passed.");
+        let result = await Tournament.updateOne({_id: tournament._id}, {
+            $set:{schedule:fileName}
+        });
+        if(result.modifiedCount){
+            return response.status(200).json({result : "Schdule uploaded", data : tournament});
+        }
+        return response.status(200).json({result : "Bot", data : tournament});
+            
+    }
+        return response.status(201).json({result : "You can upload Schedule after the deadLine"})
+    }
 
-// export const getTournaments = async (request, response, next) => {
-//     try {
-//         const tournaments = await Tournament.find();
-//         return response.status(200).json({ tournaments });
-//     } catch (error) {
-//         return response.status(500).json({ error: "Internal Server Error" });
-//     }
-// };
+export const getTournamentsById = async (request, response, next) => {
+    try {
+        console.log('called')
+        const _id = request.params.tournamentId;
+        const tournaments = await Tournament.findOne({_id}).populate('organiserId');
+        delete tournaments.organiserId.password;
+        return response.status(200).json({ tournaments });
+    } catch (error) {
+        console.log(error)
+        return response.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export const getTournaments = async (request, response, next) => {
+    try {
+        const tournaments = await Tournament.find().populate('tournamentTeams.teamId');
+        console.log(tournaments)
+        return response.status(200).json({ tournaments });
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json({ error: "Internal Server Error" });
+    }
+};

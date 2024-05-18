@@ -1,6 +1,9 @@
 import Admin from "../model/admin.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import ExcelJS from 'exceljs'
+import Stat from "../model/stat.model.js";
+
 
 export const signIn= async(request,response,next)=>{
     try{
@@ -58,6 +61,52 @@ export const updateProfile =async (request,response,next)=>{
         })
     }
 }
+export const updateScore = async (request, response) => {
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile('../output.xlsx'); // Path to your .xlsx file
+
+        const worksheet = workbook.getWorksheet('Sheet1'); // Assuming data is in 'Sheet1'
+
+        worksheet.eachRow(async (row, rowNumber) => {
+            if (rowNumber > 1) { // Skip header row
+                const _id = row.getCell(1).value;
+                if (!_id) {
+                    return; // Stop processing if _id is empty (end of data)
+                }
+
+                const trimmedId = _id.substring(1, _id.length - 1); // Trim whitespace from _id
+
+                const totalMatches = row.getCell(3).value*1;
+                const totalRuns = row.getCell(4).value*1;
+                const totalWickets = row.getCell(5).value*1;
+                const totalCatches = row.getCell(6).value*1;
+
+                console.log('Updating stats for player with ID:', trimmedId);
+
+                // Check if player with _id exists in the Stat collection
+                const existingPlayer = await Stat.findOne({ _id: trimmedId }).populate('playerId');
+                console.log(existingPlayer)
+                if (existingPlayer) {
+                    // Update player's stats
+                    let data = await Stat.updateOne(
+                        { _id: trimmedId },
+                        { totalMatches, totalRuns, totalWickets, totalCatches }
+                    );
+                    console.log(data)
+                    console.log('Player stats updated successfully');
+                } else {
+                    console.log('Player not found for ID:', trimmedId);
+                }
+            }
+        });
+    
+        return response.status(200).json({ result: 'Scores updated successfully' });
+    } catch (error) {
+        console.error('Error updating scores:', error);
+        return response.status(500).json({ error: 'Internal server error' });
+    }
+};
 
 const generateToken=(email)=>{
     let payload={subjecct:email};

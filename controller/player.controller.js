@@ -7,16 +7,20 @@ import {validationResult} from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OTP, storeOTP } from '../model/otp.model.js';
+import { response } from 'express';
+
 
 
 export const retrievePassword =  async (request, response, next) =>{
     let email  = request.body.email;
+    console.log(email)
     try{
         let player = await Player.findOne({email});
         if(!player)
             return response.status(201).json({result : "Player not found"});
 
         let otp = generateOTP();
+        console.log(otp)
         let obj = {
             from: 'sb360879@gmail.com',
             to: email,
@@ -57,22 +61,28 @@ export const acceptRequest = async (request, response, next) => {
         let { playerId, teamId } = request.body;
 
         const team = await Team.findOne({ _id: teamId });
+        const player = await Player.findOne({_id : playerId});
+        console.log(player)
+        if(player.joinStatus)
+            return response.status(201).json({message : 'You have already joined another team'})
         if (!team)
-            return response.status(404).json({ message: "Team Not Found" });
+            return response.status(201).json({ message: "Team Not Found" });
         if((team.players.length + team.personalPlayers)==11)
-            return response.status(404).json({result : "Team already full"})
+            return response.status(201).json({message : "Team already full"})
         
         const playerUpdate = await Player.updateOne({ _id: playerId }, {
             $set: {
                 joinStatus: true,
                 team: teamId
+            },
+            $pull: {
+                requestedTeam: 
+                    { teamId }    
             }
         });
-        console.log(playerUpdate);
 
-        team.players.push(playerId);
+        team.players.push({playerId : playerId});
         const teamSave = await team.save();
-        console.log(teamSave);
 
         return response.status(201).json({ message: "success" });
     } catch (err) {
@@ -109,25 +119,48 @@ function generateOTP() {
     
     return Math.floor(100000 + Math.random() * 900000);
 }
-export const getAllPlayer = async (request, response, next) =>{
+export const getAllPlayer = async (request, response, next) => {
     try {
-        let players = await Player.find();
-        return response.status(200).json({result : players});
+        let players = await Player.find().populate('playingStyle');
+       
 
+        // Remove password property from each player object
+        players.forEach(player => {
+            delete player.password;
+        });
+
+        return response.status(200).json({ result: players });
     } catch (error) {
-        return response.status(500).json({error : "Internal server error"});
+        return response.status(500).json({ error: "Internal server error" });
     }
-
 }
 
 export const getPlayerInfo = async (request, response, next) =>{
     try{
         let id  = request.params.id;
-        let player = await Player.findOne({_id : id}).populate('stats').populate('playingStyle');
+        console.log(id)
+        let player = await Player.findOne({_id : id}).populate('stats').populate('playingStyle').populate('requestedTeam.teamId');
+        console.log(player)
         return response.status(200).json({result : player});
     }
     catch(error){
-        return response.status(500).json({error : "Internal server error"});
+        console.log(error)
+        return response.status(500).json({error : error});
+    }
+
+
+}
+export const requestedTeams = async (request, response, next) =>{
+    try{
+        let id  = request.params.id;
+        console.log(id)
+        let player = await Player.findOne({_id : id}).populate('requestedTeam.teamId');
+        console.log(player)
+        return response.status(200).json({result : player});
+    }
+    catch(error){
+        console.log(error)
+        return response.status(500).json({error : error});
     }
 
 
@@ -138,7 +171,8 @@ export const getPlayerInfo = async (request, response, next) =>{
 export const signIn= async(request,response,next)=>{
 try{
     let{email,password}=request.body;
-    let player=await Player.findOne({email});
+    let player=await Player.findOne({email}).populate('team');
+    console.log(player)
     return player ?
     bcrypt.compareSync(password,player.password)?response.status(200).json({message: "signin success",player :{...player.toObject(),password:undefined},token : generateToken(email)}):response.status(401).json({error:"Invalide request",message:"Invalide password"})
     :response.status(500).json({error:"Internal server error"});
@@ -154,29 +188,35 @@ const generateToken=(email)=>{
 }
 
 
-export const signUp= async (request,response,next)=>{
+export const signUp = async (request, response, next) => {
     try {
+        const error = validationResult(request);
+        console.log(request.body)
         
-    const error =validationResult(request);
-    if(!error.isEmpty())
-        return response.status(401).json({error:"Invalid request",errorMessage:error.array()});
-    let password=request.body.password;
-    let saltkey= bcrypt.genSaltSync(10);
-    let enc= bcrypt.hashSync(password,saltkey);
-    request.body.password=enc;
-    let result = await Player.create(request.body);
-    result=result.toObject();
-    delete result.password;
-    let email=request.body.email;
-    sendEmail(email);
-        return response.status(200).json({message:"signup success",player:result});
-    } 
+        if (!error.isEmpty())
+            return response.status(401).json({ error: "Invalid request", errorMessage: error.array() });
+        let password = request.body.password;
+        let saltkey = bcrypt.genSaltSync(10);
+        console.log(saltkey)
+        
+        let enc = bcrypt.hashSync(password, saltkey);
+        let fileName = "";
+        fileName = request.file.filename;
+        console.log("Filename  " + request.file.fileName);
+        request.body.image = fileName;
+        request.body.password = enc;
+        let result = await Player.create(request.body);
+        result = result.toObject();
+        delete result.password;
+        let email = request.body.email;
+        sendEmail(email);
+        return response.status(200).json({ message: "signup success", player: result });
+    }
     catch (err) {
-    console.log(err);
-    return response.status(500).json({error:"Internal server error"});
+        console.log(err);
+        return response.status(500).json({ error: "Internal server error" });
     }
 }
-
 function sendEmail(email) {
     const mailOptions = {
         from: 'sb360879@gmail.com',
@@ -197,7 +237,7 @@ function sendEmail(email) {
 
 export const updateProfile=(request,response,next)=>{
 let playerid=request.body._id;
-console.log(playerid);
+
 let fileName="";
 if(request.file)
     fileName=request.file.filename;
@@ -233,3 +273,38 @@ export const updatePlayerProfile = async (req, res) => {
   }
 };
 
+export const retriveByStyle = async (request, response, next) =>{
+    let style = request.params.style;
+    try {
+        let players = await Player.find({playerType : style, joinStatus : false}).populate('playingStyle');
+        console.log(players)
+        return  response.status(200).json({result : players})
+    } catch (error) {
+        console.log(error)
+       return  response.status(500).json({result : "Internal server error"})
+    }
+
+  }
+
+  export const SentRequest = async (request, response, next) =>{
+    try {
+        const {teamId, playerId} = request.body;
+        console.log(teamId, playerId);
+        let team = await Team.findOne({_id : teamId});
+        if(!team)
+            return response.status(400).json({result : 'Team not Found'});
+        let  teamStatus= team.reqestedPlayers.some((player) =>player.playerId == playerId);
+        console.log(teamStatus)
+        if(!teamStatus){
+                team.reqestedPlayers.push({playerId});
+                team  = await team.save();
+        if(team.modifiedCount >0)
+            console.log('Scuess')
+            return response.status(200).json({result : "request send to Player"})
+        }
+        return response.status(201).json({result : "Request already sent"})
+    } catch (error) {
+            console.log(error)
+            return response.status(500).json({result : "Internal server error"})
+    }
+  }

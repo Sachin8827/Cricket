@@ -11,7 +11,7 @@ const playingStyle = new mongoose.Schema({
     bowlingArm :{
         type : String
     },
-    battingPostion : {
+    battingPosition : {
         type : String
     },
     bowlingStyle : {

@@ -9,7 +9,10 @@ const teamSchema = new mongoose.Schema({
         type : String,
         trim  : true
     },
-    
+    logo : {
+        type : String,
+        trim : true
+    },
     captain : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'Player'
